@@ -50,3 +50,7 @@ data/comments*.mtx
 # Do not ignore this file
 !.gitignore
 
+build/
+*.o
+*.a
+*.so LAGraph_NumberOfWalks.c experimental/algorithm/
