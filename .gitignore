@@ -54,3 +54,4 @@ build/
 *.o
 *.a
 *.so LAGraph_NumberOfWalks.c experimental/algorithm/
+Test/
