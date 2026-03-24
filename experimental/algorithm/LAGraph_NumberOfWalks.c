@@ -37,7 +37,7 @@ GrB_Info LAGraph_NumberOfWalks (GrB_Matrix *C, GrB_Matrix A, int64_t k)
 
     // RECURSION
     GrB_Matrix T;
-    info = LAGr_NumberOfWalks(&T, A, k / 2);
+    info = LAGraph_NumberOfWalks(&T, A, k / 2);
     if (info != GrB_SUCCESS) return info;
 
     // square res = T^2
