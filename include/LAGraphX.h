@@ -1515,6 +1515,20 @@ int LAGr_MaxFlow(
     char* msg
 );
 
+//------------------------------------------------------------------------------
+// NumberOfWalks: compute walks of length k
+//------------------------------------------------------------------------------
+
+LAGRAPHX_PUBLIC
+GrB_Info LAGraph_NumberOfWalks
+(
+    // output:
+    GrB_Matrix *C,      // The output matrix (A^k)
+    // input:
+    GrB_Matrix A,       // The adjacency matrix
+    int64_t k           // Walk length
+) ;
+
 
 #if defined ( __cplusplus )
 }
