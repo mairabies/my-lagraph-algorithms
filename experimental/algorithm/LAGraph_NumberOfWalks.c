@@ -1,61 +1,100 @@
 #include "GraphBLAS.h"
 #include "LAGraphX.h"
 
-/**
- * NumberOfWalks: Recursive implementation using binary exponentiation.
- * 
- * @param C      The output matrix (A^k)
- * @param A      The adjacency matrix
- * @param k      Walk length
- */
-
-GrB_Info LAGraph_NumberOfWalks (GrB_Matrix *C, GrB_Matrix A, int64_t k) 
+// Inner recursive helper: computes C = A^k using binary exponentiation.
+// Uses LAGraph_plus_one_int64 (structural semiring) only for A*A (k==2),
+// where both operands are still the original 0/1 adjacency matrix
+// All other squarings use PLUS_TIMES because T = A^(k/2) has walk counts
+static GrB_Info NumberOfWalks_inner(GrB_Matrix *C, GrB_Matrix A, int64_t k)
 {
-    if (C == NULL || A == NULL || k < 0) return GrB_INVALID_VALUE;
+    if (C == NULL || A == NULL || k < 0) return GrB_INVALID_VALUE ;
 
-    GrB_Info info;
-    GrB_Index n;
-    GrB_Matrix_nrows(&n, A);
+    GrB_Info info ;
+    GrB_Index n ;
+    GrB_Matrix_nrows (&n, A) ;
 
-    // BASE CASES: k=0, 1, 2
-
-    // identity matrix, is a for loop necessary here?
-    if (k == 0) {
-        GrB_Matrix_new(C, GrB_INT64, n, n);
-        for (GrB_Index i = 0; i < n; i++) GrB_Matrix_setElement_INT64(*C, 1, i, i);
-        return GrB_SUCCESS;
+    // --- BASE CASES ---
+    if (k == 0)
+    {
+        GrB_Matrix_new (C, GrB_INT64, n, n) ;
+        for (GrB_Index i = 0 ; i < n ; i++)
+            GrB_Matrix_setElement_INT64 (*C, 1, i, i) ;
+        return GrB_SUCCESS ;
     }
 
-    // adjacency matrix itself
-    if (k == 1) return GrB_Matrix_dup(C, A);
-    
-    // A^2
-    if (k == 2) {
-        GrB_Matrix_new(C, GrB_INT64, n, n);
-        return GrB_mxm(*C, NULL, NULL, GrB_PLUS_TIMES_SEMIRING_INT64, A, A, NULL);
+    if (k == 1) return GrB_Matrix_dup (C, A) ;
+
+    // k==2: adjacency matrix, 
+    if (k == 2)
+    {
+        GrB_Matrix_new (C, GrB_INT64, n, n) ;
+        return GrB_mxm (*C, NULL, NULL, LAGraph_plus_one_int64, A, A, NULL) ;
     }
 
-    // RECURSION
-    GrB_Matrix T;
-    info = LAGraph_NumberOfWalks(&T, A, k / 2);
-    if (info != GrB_SUCCESS) return info;
+    // --- RECURSION (binary exponentiation) ---
+    GrB_Matrix T = NULL ;
+    info = NumberOfWalks_inner (&T, A, k / 2) ;
+    if (info != GrB_SUCCESS) return info ;
 
-    // square res = T^2
-    // Res is to hold the result of T^2, is this necessary?
-    GrB_Matrix Res;
-    GrB_Matrix_new(&Res, GrB_INT64, n, n);
-    GrB_mxm(Res, NULL, NULL, GrB_PLUS_TIMES_SEMIRING_INT64, T, T, NULL);
-    GrB_free(&T);
+    // T = A^(k/2) 
+    GrB_Matrix_new (C, GrB_INT64, n, n) ;
+    GrB_mxm (*C, NULL, NULL, GrB_PLUS_TIMES_SEMIRING_INT64, T, T, NULL) ;
+    GrB_free (&T) ;
 
-    // If k is odd, multiply by A (Res = Res * A)
-    if (k % 2 != 0) {
-        GrB_Matrix_new(C, GrB_INT64, n, n);
-        GrB_mxm(*C, NULL, NULL, GrB_PLUS_TIMES_SEMIRING_INT64, Res, A, NULL);
-        GrB_free(&Res);
-    // if k is even, just return T^2 (Res)
-    } else {
-        *C = Res;
+    // If k is odd, multiply by one more A: *C = *C * A
+    if (k % 2 != 0)
+    {
+        GrB_mxm (*C, NULL, NULL, GrB_PLUS_TIMES_SEMIRING_INT64, *C, A, NULL) ;
     }
 
-    return GrB_SUCCESS;
+    return GrB_SUCCESS ;
+}
+
+/**
+ * LAGraph_NumberOfWalks: compute number of walks of length k.
+ *
+ * If src is NULL, computes the full n×n matrix A^k where C(i,j) is the
+ * number of distinct walks of length k from node i to node j.
+ *
+ * If src is a non-NULL indicator vector (1 at the source node index),
+ * computes only the walks from that source to all destinations.
+ * Result is stored in *C as a 1×n matrix where C(0,j) = walks from src to j.
+ */
+GrB_Info LAGraph_NumberOfWalks
+(
+    GrB_Matrix *C,      // output: A^k (n×n) or single-source walks (1×n)
+    GrB_Matrix  A,      // input: adjacency matrix
+    GrB_Vector  src,    // input: source indicator vector (NULL = all pairs)
+    int64_t     k       // input: walk length
+)
+{
+    if (C == NULL || A == NULL || k < 0) return GrB_INVALID_VALUE ;
+
+    // All-pairs case: compute full A^k
+    if (src == NULL)
+    {
+        return NumberOfWalks_inner (C, A, k) ;
+    }
+
+    // Single-source case: compute A^k, then w = src * A^k via vxm
+    GrB_Info info ;
+    GrB_Index n ;
+    GrB_Matrix_nrows (&n, A) ;
+
+    GrB_Matrix Ak = NULL ;
+    info = NumberOfWalks_inner (&Ak, A, k) ;
+    if (info != GrB_SUCCESS) return info ;
+
+    // w(j) = sum_i src(i) * Ak(i,j) — extracts the source row(s) of Ak
+    GrB_Vector w = NULL ;
+    GrB_Vector_new (&w, GrB_INT64, n) ;
+    info = GrB_vxm (w, NULL, NULL, GrB_PLUS_TIMES_SEMIRING_INT64, src, Ak, NULL) ;
+    GrB_free (&Ak) ;
+    if (info != GrB_SUCCESS) { GrB_free (&w) ; return info ; }
+
+    // Store result vector w as row 0 of a 1×n output matrix
+    GrB_Matrix_new (C, GrB_INT64, 1, n) ;
+    info = GrB_assign (*C, NULL, NULL, w, 0, GrB_ALL, n, NULL) ;
+    GrB_free (&w) ;
+    return info ;
 }

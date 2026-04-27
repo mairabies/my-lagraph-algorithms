@@ -83,8 +83,8 @@ void test_NumberOfWalks_path_3node (void)
     OK (GrB_Matrix_build_INT64 (A, rows, cols, vals, 4, GrB_PLUS_INT64)) ;
     
     // Compute A^2
-    OK (LAGraph_NumberOfWalks (&result, A, 2)) ;
-    
+    OK (LAGraph_NumberOfWalks (&result, A, NULL, 2)) ;
+
     // Compare with ground truth
     int64_t err = check_walks (result, path_3node_walks_k2, n) ;
     TEST_CHECK (err == 0) ;
@@ -110,8 +110,8 @@ void test_NumberOfWalks_A_mtx (void)
     OK (LAGraph_MMRead (&A, f, msg)) ;
     OK (fclose (f)) ;
     
-    OK (LAGraph_NumberOfWalks (&result, A, 2)) ;
-    
+    OK (LAGraph_NumberOfWalks (&result, A, NULL, 2)) ;
+
     int64_t err = check_walks (result, A_mtx_walks_k2, n) ;
     TEST_CHECK (err == 0) ;
     
@@ -138,7 +138,7 @@ void test_NumberOfWalks_cycle_4 (void)
     int64_t vals[] = {1, 1, 1, 1, 1, 1, 1, 1} ;
     
     OK (GrB_Matrix_build_INT64 (A, rows, cols, vals, 8, GrB_PLUS_INT64)) ;
-    OK (LAGraph_NumberOfWalks (&result, A, 2)) ;
+    OK (LAGraph_NumberOfWalks (&result, A, NULL, 2)) ;
     
     int64_t err = check_walks (result, cycle_4node_walks_k2, n) ;
     TEST_CHECK (err == 0) ;
@@ -167,21 +167,21 @@ void test_NumberOfWalks_varying_k (void)
     OK (GrB_Matrix_build_INT64 (A, rows, cols, vals, 4, GrB_PLUS_INT64)) ;
     
     // k=1
-    OK (LAGraph_NumberOfWalks (&result, A, 1)) ;
+    OK (LAGraph_NumberOfWalks (&result, A, NULL, 1)) ;
     int64_t val = 0 ;
     GrB_Matrix_extractElement_INT64 (&val, result, 0, 1) ;
     TEST_CHECK (val == 1) ;
     OK (GrB_free (&result)) ;
     
     // k=3
-    OK (LAGraph_NumberOfWalks (&result, A, 3)) ;
+    OK (LAGraph_NumberOfWalks (&result, A, NULL, 3)) ;
     val = 0 ;
     GrB_Matrix_extractElement_INT64 (&val, result, 0, 2) ;
     TEST_CHECK (val == 0) ;
     OK (GrB_free (&result)) ;
     
     // k=4
-    OK (LAGraph_NumberOfWalks (&result, A, 4)) ;
+    OK (LAGraph_NumberOfWalks (&result, A, NULL, 4)) ;
     val = 0 ;
     GrB_Matrix_extractElement_INT64 (&val, result, 0, 0) ;
     TEST_CHECK (val == 2) ;
