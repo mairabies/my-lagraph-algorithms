@@ -1523,10 +1523,11 @@ LAGRAPHX_PUBLIC
 GrB_Info LAGraph_NumberOfWalks
 (
     // output:
-    GrB_Matrix *C,      // The output matrix (A^k)
+    GrB_Matrix *C,      // A^k (n×n) for all-pairs, or 1×n for single-source
     // input:
-    GrB_Matrix A,       // The adjacency matrix
-    int64_t k           // Walk length
+    GrB_Matrix  A,      // adjacency matrix
+    GrB_Vector  src,    // source indicator vector (NULL = all pairs)
+    int64_t     k       // walk length
 ) ;
 
 
