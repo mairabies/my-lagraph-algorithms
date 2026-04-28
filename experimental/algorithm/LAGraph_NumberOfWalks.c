@@ -44,7 +44,7 @@ static GrB_Info NumberOfWalks_inner(GrB_Matrix *C, GrB_Matrix A, int64_t k)
     // If k is odd, multiply by one more A: *C = *C * A
     if (k % 2 != 0)
     {
-        GrB_mxm (*C, NULL, NULL, GrB_PLUS_TIMES_SEMIRING_INT64, *C, A, NULL) ;
+        GrB_mxm (*C, NULL, NULL, LAGraph_plus_first_int64, *C, A, NULL) ;
     }
 
     return GrB_SUCCESS ;
