@@ -1,0 +1,158 @@
+LAGraph_NumberOfWalks — Benchmark Results
+==========================================
+Date       : Tue Apr 28 1:51:53 CDT 2026
+Walk length: k = 4
+Host       : Mairabies-PC
+Matrix dir : /home/atharmaira/matrices
+
+Algorithms compared
+  [LAGraph]  NumberOfWalks all-pairs   O(log k) mxm  binary exponentiation
+  [LAGraph]  MultiSourceBFS            O(diameter) mxm  (baseline)
+  [LAGraph]  NumberOfWalks single-src  one indicator-vector vxm after A^k
+  [LAGraph]  BFS single-source         one vxm per source  (baseline)
+  [NetworkX] nx.number_of_walks        all-pairs only  (ca-HepTh only)
+
+Graphs
+  Head-to-head (LAGraph + NetworkX) : CollegeMsg.mtx
+  LAGraph only                      : ca-HepTh.mtx as-caida.mtx com-Youtube.mtx
+
+======================================================================
+HEAD-TO-HEAD: CollegeMsg.mtx  (LAGraph + NetworkX)
+======================================================================
+
+--- walks_demo: CollegeMsg ---
+library: SuiteSparse:GraphBLAS v9.3.0 [Aug 2, 2024]
+threads to test: 16
+matrix: /home/atharmaira/matrices/CollegeMsg.mtx
+[.mtx]
+Reading matrix market file: /home/atharmaira/matrices/CollegeMsg.mtx
+read time: 0.0131274
+graph: /home/atharmaira/matrices/CollegeMsg.mtx  n: 1899  edges: 20296  k: 4
+source trials: 8
+
+--- warmup ---
+NumberOfWalks (all-pairs): 0.0935633 sec
+MultiSourceBFS:            0.00324138 sec
+BFS (single-source):       0.00499279 sec
+NumberOfWalks (single-source): 0.0730813 sec
+
+=========================== nthreads: 16 ===========================
+
+--- Part 1: All-pairs (k=4, 8 sources) ---
+NumberOfWalks all-pairs  k:  4  threads: 16  time:     0.0658 sec
+MultiSourceBFS           sources: 8  threads: 16  time:     0.0010 sec
+
+--- Part 2: Single-source (k=4) ---
+trial:   0  src:          109  walks:   0.0608 sec  bfs:   0.0001 sec
+trial:   1  src:         1573  walks:   0.0596 sec  bfs:   0.0000 sec
+trial:   2  src:         1044  walks:   0.0830 sec  bfs:   0.0001 sec
+trial:   3  src:         1330  walks:   0.0446 sec  bfs:   0.0001 sec
+trial:   4  src:          329  walks:   0.0504 sec  bfs:   0.0000 sec
+trial:   5  src:         1735  walks:   0.0360 sec  bfs:   0.0001 sec
+trial:   6  src:         1072  walks:   0.0510 sec  bfs:   0.0000 sec
+trial:   7  src:          444  walks:   0.0574 sec  bfs:   0.0001 sec
+Avg: NumberOfWalks all-pairs    k:  4  threads:  16  time:      0.066 sec  graph: /home/atharmaira/matrices/CollegeMsg.mtx
+Avg: MultiSourceBFS             sources: 8  threads:  16  time:      0.001 sec  graph: /home/atharmaira/matrices/CollegeMsg.mtx
+Avg: NumberOfWalks single-src   k:  4  threads:  16  time:      0.055 sec  graph: /home/atharmaira/matrices/CollegeMsg.mtx
+Avg: BFS single-source          threads:  16  time:      0.000 sec  graph: /home/atharmaira/matrices/CollegeMsg.mtx
+
+Avg: NumberOfWalks all-pairs    k:  4  threads:  16  time:      0.066 sec  graph: /home/atharmaira/matrices/CollegeMsg.mtx
+Avg: MultiSourceBFS             sources: 8  threads:  16  time:      0.001 sec  graph: /home/atharmaira/matrices/CollegeMsg.mtx
+Avg: NumberOfWalks single-src   k:  4  threads:  16  time:      0.055 sec  graph: /home/atharmaira/matrices/CollegeMsg.mtx
+Avg: BFS single-source          threads:  16  time:      0.000 sec  graph: /home/atharmaira/matrices/CollegeMsg.mtx
+
+--- bench_networkx.py: CollegeMsg ---
+
+============================================================
+NetworkX benchmark: CollegeMsg  k=4
+nodes : 1,899   edges: 13,838
+load  : 0.0240 sec
+============================================================
+warmup ... 34.6990 sec
+timing nx.number_of_walks (k=4) ... 35.1171 sec
+
+Note: NetworkX has no single-source mode.
+      number_of_walks always computes all pairs.
+
+Summary  graph=CollegeMsg  k=4
+  nx.number_of_walks all-pairs : 35.1171 sec
+  single-source (no NX API)    : 35.1171 sec  (all-pairs cost)
+NXPY	all-pairs	CollegeMsg	k=4	35.117054
+NXPY	single-src	CollegeMsg	k=4	35.117054	NOTE:same-as-all-pairs
+
+======================================================================
+LAGraph ONLY: ca-HepTh.mtx
+======================================================================
+
+--- walks_demo: ca-HepTh ---
+library: SuiteSparse:GraphBLAS v9.3.0 [Aug 2, 2024]
+threads to test: 16
+matrix: /home/atharmaira/matrices/ca-HepTh.mtx
+[.mtx]
+Reading matrix market file: /home/atharmaira/matrices/ca-HepTh.mtx
+read time: 0.0156257
+graph: /home/atharmaira/matrices/ca-HepTh.mtx  n: 9877  edges: 51971  k: 4
+source trials: 8
+
+--- warmup ---
+NumberOfWalks (all-pairs): 0.0702111 sec
+MultiSourceBFS:            0.00574497 sec
+BFS (single-source):       0.00513028 sec
+NumberOfWalks (single-source): 0.0455066 sec
+
+=========================== nthreads: 16 ===========================
+
+--- Part 1: All-pairs (k=4, 8 sources) ---
+NumberOfWalks all-pairs  k:  4  threads: 16  time:     0.0649 sec
+MultiSourceBFS           sources: 8  threads: 16  time:     0.0029 sec
+
+--- Part 2: Single-source (k=4) ---
+trial:   0  src:         8408  walks:   0.0429 sec  bfs:   0.0006 sec
+trial:   1  src:         7767  walks:   0.0644 sec  bfs:   0.0006 sec
+trial:   2  src:         5126  walks:   0.0629 sec  bfs:   0.0006 sec
+trial:   3  src:         9469  walks:   0.0533 sec  bfs:   0.0007 sec
+trial:   4  src:         7869  walks:   0.0467 sec  bfs:   0.0008 sec
+trial:   5  src:         1431  walks:   0.0465 sec  bfs:   0.0008 sec
+trial:   6  src:          241  walks:   0.0861 sec  bfs:   0.0008 sec
+trial:   7  src:         5182  walks:   0.0425 sec  bfs:   0.0006 sec
+Avg: NumberOfWalks all-pairs    k:  4  threads:  16  time:      0.065 sec  graph: /home/atharmaira/matrices/ca-HepTh.mtx
+Avg: MultiSourceBFS             sources: 8  threads:  16  time:      0.003 sec  graph: /home/atharmaira/matrices/ca-HepTh.mtx
+Avg: NumberOfWalks single-src   k:  4  threads:  16  time:      0.056 sec  graph: /home/atharmaira/matrices/ca-HepTh.mtx
+Avg: BFS single-source          threads:  16  time:      0.001 sec  graph: /home/atharmaira/matrices/ca-HepTh.mtx
+
+Avg: NumberOfWalks all-pairs    k:  4  threads:  16  time:      0.065 sec  graph: /home/atharmaira/matrices/ca-HepTh.mtx
+Avg: MultiSourceBFS             sources: 8  threads:  16  time:      0.003 sec  graph: /home/atharmaira/matrices/ca-HepTh.mtx
+Avg: NumberOfWalks single-src   k:  4  threads:  16  time:      0.056 sec  graph: /home/atharmaira/matrices/ca-HepTh.mtx
+Avg: BFS single-source          threads:  16  time:      0.001 sec  graph: /home/atharmaira/matrices/ca-HepTh.mtx
+
+======================================================================
+LAGraph ONLY: as-caida.mtx
+======================================================================
+
+--- walks_demo: as-caida ---
+library: SuiteSparse:GraphBLAS v9.3.0 [Aug 2, 2024]
+threads to test: 16
+matrix: /home/atharmaira/matrices/as-caida.mtx
+[.mtx]
+Reading matrix market file: /home/atharmaira/matrices/as-caida.mtx
+read time: 0.0333175
+graph: /home/atharmaira/matrices/as-caida.mtx  n: 31379  edges: 106762  k: 4
+source trials: 8
+
+--- warmup ---
+NumberOfWalks (all-pairs): 67.0883 sec
+MultiSourceBFS:            0.116869 sec
+BFS (single-source):       0.018319 sec
+NumberOfWalks (single-source): 104.206 sec
+
+=========================== nthreads: 16 ===========================
+
+--- Part 1: All-pairs (k=4, 8 sources) ---
+NumberOfWalks all-pairs  k:  4  threads: 16  time:   103.1282 sec
+MultiSourceBFS           sources: 8  threads: 16  time:     0.0957 sec
+
+--- Part 2: Single-source (k=4) ---
+trial:   0  src:        28262  walks:  84.1204 sec  bfs:   0.0120 sec
+trial:   1  src:        11676  walks:  92.8588 sec  bfs:   0.0378 sec
+trial:   2  src:        29409  walks: 103.5402 sec  bfs:   0.0495 sec
+trial:   3  src:        25597  walks:  88.3613 sec  bfs:   0.0407 sec
