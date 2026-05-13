@@ -81,20 +81,21 @@ GrB_Info LAGraph_NumberOfWalks
     GrB_Index n ;
     GrB_Matrix_nrows (&n, A) ;
 
-    GrB_Matrix Ak = NULL ;
-    info = NumberOfWalks_inner (&Ak, A, k) ;
-    if (info != GrB_SUCCESS) return info ;
-
-    // w(j) = sum_i src(i) * Ak(i,j) — extracts the source row(s) of Ak
+    // w represents the counts of walks of length 't' starting from 'src'
     GrB_Vector w = NULL ;
-    GrB_Vector_new (&w, GrB_INT64, n) ;
-    info = GrB_vxm (w, NULL, NULL, GrB_PLUS_TIMES_SEMIRING_INT64, src, Ak, NULL) ;
-    GrB_free (&Ak) ;
-    if (info != GrB_SUCCESS) { GrB_free (&w) ; return info ; }
+    GrB_Vector_dup (&w, src) ;
 
-    // Store result vector w as row 0 of a 1×n output matrix
+    for (int64_t t = 0 ; t < k ; t++)
+    {
+        // w^T = w^T * A: walks of length t+1 from source to each vertex
+        info = GrB_vxm (w, NULL, NULL, LAGraph_plus_first_int64, w, A, NULL) ;
+        if (info != GrB_SUCCESS) { GrB_free (&w) ; return info ; }
+    }
+
     GrB_Matrix_new (C, GrB_INT64, 1, n) ;
     info = GrB_assign (*C, NULL, NULL, w, 0, GrB_ALL, n, NULL) ;
+
     GrB_free (&w) ;
-    return info ;
+
+    return info;
 }
